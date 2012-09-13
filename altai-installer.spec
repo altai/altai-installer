@@ -1,6 +1,8 @@
+%define targetdir /opt/altai
+
 Name:             altai-installer
 Version:          1.0
-Release:          0
+Release:          0%{?dist}
 Summary:          Installer for Altai
 License:          GNU LGPL 2.1
 Vendor:           Grid Dynamics International, Inc.
@@ -26,9 +28,9 @@ Chef-based installer for Altai
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/opt/altai
-cp -a * %{buildroot}/opt/altai
-rm -f %{buildroot}/opt/altai/COPYING*
+mkdir -p %{buildroot}%{targetdir}
+cp -a * %{buildroot}%{targetdir}
+rm -f %{buildroot}%{targetdir}/COPYING* %{buildroot}%{targetdir}/*spec
 
 
 %clean
