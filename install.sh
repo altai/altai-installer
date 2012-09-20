@@ -44,5 +44,7 @@ touch /var/log/altai-install.log
 chmod 600 /var/log/altai-install.log
 ./_install.sh "$DIR" "$1" "$receipt" 2>&1 | tee -a /var/log/altai-install.log
 
+altai_release_file=/etc/altai-release
+rpm -q --queryformat '%{VERSION}\n' altai-release > $altai_release_file
 
 exit ${PIPESTATUS[0]} 
