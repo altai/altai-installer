@@ -6,7 +6,7 @@ log () {
 DIR=$1
 export ROLE=$2
 receipt=$3
-export ALTAI_LOG=$DIR/install.log
+export ALTAI_LOG=$4
 
 cat  >$DIR/solo.rb <<EOF
 file_cache_path "$DIR"

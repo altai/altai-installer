@@ -1,2 +1,3 @@
-Please review our end user agreement before proceeding. 
+Please review our end user agreement before proceeding at
+http://www.griddynamics.com/solutions/altai-private-cloud-for-developers/release/eula 
 
