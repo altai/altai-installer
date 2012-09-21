@@ -15,4 +15,8 @@ if is_master; then
     for srv in $master_services; do
         service $srv start
     done
+else
+    compute_ip_private=$(python -c 'import json; print json.load(open("/opt/altai/compute-node.json"))["compute-ip-private"]')
+    sed -i "s/vncserver_proxyclient_address.*/vncserver_proxyclient_address = $compute_ip_private/" /etc/nova/nova.conf
+    service nova-compute restart
 fi

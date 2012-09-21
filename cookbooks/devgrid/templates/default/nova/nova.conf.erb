@@ -47,7 +47,7 @@ libvirt_snapshot_dir=/var/lib/nova/images/tmp
 vnc_enabled = true
 novncproxy_base_url = http://<%= node["master-ip-public"] %>:6080/vnc_auto.html
 xvpvncproxy_base_url = http://<%= node["master-ip-public"] %>:6081/console
-vncserver_proxyclient_address = <%= node["master-ip-public"] %> 
+vncserver_proxyclient_address = <%= node["compute-ip-private"] %>
 vncserver_listen = 0.0.0.0
 
 # MISC

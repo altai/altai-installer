@@ -3,6 +3,7 @@
     "mysql-nova-password": "AFBD6ED7-88DC-4DF0-BF91-52BBF0145059",
     "admin-login-name": "admin",
     "admin-login-password": "secrete",
+    "compute-ip-private": "10.0.100.2",
     "master-ip-private": "10.0.100.1",
     "master-ip-public": "10.0.80.1",
     "projects-interface": "eth2",
