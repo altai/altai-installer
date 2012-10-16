@@ -20,13 +20,13 @@ require "uuid"
 log("Start to install nova")
 log("Start to install nova-openstack")
 
-%w( openstack-nova-essex-api 
-    openstack-nova-essex-network 
-    openstack-nova-essex-objectstore 
-    openstack-nova-essex-scheduler
-    openstack-nova-essex-volume
-    python-novaclient-essex
-    openstack-nova-essex-consoleauth
+%w( openstack-nova-api 
+    openstack-nova-network 
+    openstack-nova-objectstore 
+    openstack-nova-scheduler
+    openstack-nova-volume
+    python-novaclient
+    openstack-nova-console
     openstack-noVNC
     nova-networks-ext nova-fping-ext
     ntp).each do |package_name|

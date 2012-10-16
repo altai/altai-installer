@@ -21,7 +21,7 @@ require "uuid"
 log("Start to install glance")
 node.set["mysql-glance-password"] = UUID.new().generate()
 
-package 'openstack-glance-essex'
+package 'openstack-glance'
 
 mysql_create_database "glance" do
     user :glance

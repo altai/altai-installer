@@ -20,11 +20,9 @@ require "uuid"
 log("Start to install keystone")
 node.set["mysql-keystone-password"] = UUID.new().generate()
 node.set["keystone-magic-token"] = UUID.new().generate()
-%w(openstack-keystone-essex python-keystoneclient-essex).each do |package_name|
+%w(openstack-keystone python-keystoneclient).each do |package_name|
     package package_name  
 end
-#FIXME - should be req of keystone-essex ? 
-package "python-simplejson"
 
 mysql_create_database "keystone" do
     user :keystone

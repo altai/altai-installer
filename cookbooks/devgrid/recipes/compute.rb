@@ -19,7 +19,7 @@ require "uuid"
 
 log("Start to install nova-compute")
 
-%w( ntp dbus openstack-nova-essex-compute ).each do |package_name|
+%w( ntp dbus openstack-nova-compute ).each do |package_name|
     package package_name 
 end
 
