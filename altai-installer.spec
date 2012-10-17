@@ -1,7 +1,7 @@
 %define targetdir /opt/altai
 
 Name:             altai-installer
-Version:          1.0.1
+Version:          1.0.2
 Release:          0%{?dist}
 Summary:          Installer for Altai
 License:          GNU LGPL 2.1
@@ -20,7 +20,7 @@ Chef-based installer for Altai
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 
 
 %build

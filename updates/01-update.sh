@@ -4,10 +4,17 @@ function is_master() {
     rpm -q python-focus &>/dev/null
 }
 
-master_services="focus instance-notifier zabbix-notifier nova-billing-heart nova-billing-os-amqp"
-master_packages="python-focus instance-notifier nova-fping-ext python-openstackclient-base-essex zabbix-notifier"
+master_services="focus instance-notifier
+glance-api       keystone  nova-billing-heart    nova-consoleauth  nova-dns      nova-novncproxy   nova-scheduler
+glance-registry  nova-api  nova-billing-os-amqp  nova-compute  nova-network  nova-objectstore  nova-volume"
 
-mv /etc/altai-release /etc/altai-install-info.json
+master_packages="openstack-nova openstack-glance openstack-keystone openstack-noVNC 
+python-novaclient python-glanceclient python-keystoneclient
+python-openstackclient-base
+instance-notifier nova-dns nova-fping-ext nova-networks-ext python-focus
+nova-billing"
+
+yum downgrade -y python-amqplib-0.6.1
 
 if is_master; then
     for srv in $master_services; do
@@ -18,7 +25,7 @@ if is_master; then
         service $srv start
     done
 else
-    compute_ip_private=$(python -c 'import json; print json.load(open("/etc/altai-install-info.json"))["compute-ip-private"]')
-    sed -i "s/vncserver_proxyclient_address.*/vncserver_proxyclient_address = $compute_ip_private/" /etc/nova/nova.conf
-    service nova-compute restart
+    service nova-compute stop
+    yum install -y openstack-nova-compute
+    service nova-compute start
 fi
