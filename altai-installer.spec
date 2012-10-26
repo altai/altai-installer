@@ -17,7 +17,7 @@ Requires:         altai-chef-gems
 
 %description
 Chef-based installer for Altai
-
+See?
 
 %prep
 %setup -q
