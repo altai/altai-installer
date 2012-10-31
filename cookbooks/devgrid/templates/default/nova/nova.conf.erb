@@ -8,6 +8,8 @@ auth_strategy = keystone
 node_availability_zone = nova
 
 sql_connection = mysql://nova:<%= node["mysql-nova-password"] %>@<%= node["master-ip-private"] %>/nova
+# Makes nova to "infinitly" connect to mysql, to avoid race condition between master and compute nodes start
+sql_max_retries = -1
 
 scheduler_driver = nova.scheduler.simple.SimpleScheduler
 image_service = nova.image.glance.GlanceImageService
