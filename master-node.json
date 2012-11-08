@@ -15,5 +15,6 @@
     "mail-smtp-username": "",
     "mail-smtp-password": "",
     "mail-smtp-tls": false,
-    "mail-smtp-port": 25
+    "mail-smtp-port": 25,
+    "active-directory-integration": false
 }
