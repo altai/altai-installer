@@ -21,6 +21,10 @@ if is_master; then
         service $srv stop
     done
     yum install -y $master_packages
+    if ! grep -q CONFIGURED_HOSTNAME /etc/focus/local_settings.py; then
+        configured_hostname=$(python -c 'import json; c = json.load(open("/opt/altai/master-node.json")); print c.get("master-configured-hostname", "http://%s" % c["master-ip-public"])')
+        echo "CONFIGURED_HOSTNAME = '$configured_hostname'" >> /etc/focus/local_settings.py
+    fi
     for srv in $master_services; do
         service $srv start
     done
