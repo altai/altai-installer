@@ -41,6 +41,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc COPYING*
 /opt/altai
+%config(noreplace) /opt/altai/*-node.json
 
 
 %changelog

@@ -21,6 +21,15 @@ if is_master; then
         service $srv stop
     done
     yum install -y $master_packages
+    if ! grep -q CONFIGURED_HOSTNAME /etc/focus/local_settings.py; then
+        configured_hostname=$(python -c 'import json; c = json.load(open("/opt/altai/master-node.json")); print c.get("master-configured-hostname", "http://%s" % c["master-ip-public"])')
+        echo "CONFIGURED_HOSTNAME = '$configured_hostname'" >> /etc/focus/local_settings.py
+    fi
+    if [[ $(grep INVITATIONS_DATABASE_URI /etc/focus/local_settings.py) =~ .*//([^:]+):([^@]+)@([^/]+)/.* ]]; then
+        mysql -u"${BASH_REMATCH[1]}" -p"${BASH_REMATCH[2]}" -h"${BASH_REMATCH[3]}" focus < /etc/focus/configured_hostnames.sql
+    else
+        echo "Please apply run /etc/focus/configured_hostnames.sql for focus invitations database"
+    fi
     for srv in $master_services; do
         service $srv start
     done
