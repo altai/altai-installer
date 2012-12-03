@@ -44,7 +44,7 @@ template "/etc/focus/gunicorn_config.py" do
 end
 
 execute "upload db" do 
-    command "mysql -u focus -p#{node['mysql-focus-password']} focus < /etc/focus/invitations_dump.sql"
+    command "cat /etc/focus/{invitations_dump,configured_hostnames}.sql | mysql -u focus -p#{node['mysql-focus-password']} focus"
 end
 
 python "grant access for admin user in ODB" do 
