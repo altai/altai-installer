@@ -32,9 +32,11 @@ if is_master; then
     fi
     for srv in $master_services; do
         service $srv start
+        chkconfig --add $srv
     done
 else
     service nova-compute stop
     yum install -y openstack-nova-compute
     service nova-compute start
+    chkconfig --add nova-compute
 fi
