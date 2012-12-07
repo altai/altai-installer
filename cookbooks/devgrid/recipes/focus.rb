@@ -47,30 +47,6 @@ execute "upload db" do
     command "cat /etc/focus/{invitations_dump,configured_hostnames}.sql | mysql -u focus -p#{node['mysql-focus-password']} focus"
 end
 
-python "grant access for admin user in ODB" do 
-    environment ({
-	"USER"	    => node["admin-login-name"],
-	"PASSWD"    => node["admin-login-password"],
-	"EMAIL"	    => node["admin-login-email"],
-	"IP" => node["master-ip-private"] })
-    code <<-EOH
-from os import environ as env
-import hashlib, base64, httplib2, json
-    
-m = hashlib.md5()
-m.update(env["PASSWD"])
-p = "{MD5}%s" % base64.standard_b64encode(m.digest())
-h = httplib2.Http()
-response, content = h.request(
-    'http://%s:3536/v1/users' % (env["IP"]), 
-    method='POST',
-    body=json.dumps(dict(login="", email=env["EMAIL"], username=env["USER"], passwordHash=p)),
-    headers={'Content-Type': 'application/json'})
-if response.status > 300 or response.status < 200:
-    raise Exception("ODB return status code %s" % (response.status_code))
-EOH
-end
-
 try "update tenant_id in config file with real id" do
     code <<-EOH
     export TENANT_ID=`cat /tmp/systenant.id`
