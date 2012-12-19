@@ -16,5 +16,14 @@
     "mail-smtp-username": "",
     "mail-smtp-password": "",
     "mail-smtp-tls": false,
-    "mail-smtp-port": 25
+    "mail-smtp-port": 25,
+    "ldap-integration": false,
+    "ldap-url": "ldap://<host>",
+    "ldap-user": "",
+    "ldap-password": "",
+    "ldap-group-tree-dn": "",
+    "ldap-user-tree-dn": "",
+    "ldap-user-objectclass": "organizationalPerson",
+    "ldap-user-id-attribute": "uid",
+    "ldap-user-name-attribute": "uid"
 }
