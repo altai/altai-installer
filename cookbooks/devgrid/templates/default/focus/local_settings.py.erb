@@ -14,7 +14,6 @@ KEYSTONE_CONF = {
     'username': '<%= node["admin-login-name"] %>',
     'password': '<%= node["admin-login-password"] %>',
 }
-DEFAULT_TENANT_ID = '@~TENANT_ID~@'
 
 MAIL_SERVER = '<%= node["mail-server"] %>'
 MAIL_PORT = <%= node["mail-smtp-port"] %> 
@@ -34,3 +33,4 @@ ZABBIX_PROXY_DB={
 NOTIFICATIONS_API_URL = 'http://localhost:18080/'
 
 CONFIGURED_HOSTNAME = '<%= node["master-configured-hostname"] %>'
+LDAP_INTEGRATION = <%= node["active-directory-integration"] %>
