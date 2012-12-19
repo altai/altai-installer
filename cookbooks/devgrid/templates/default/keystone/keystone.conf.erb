@@ -14,18 +14,22 @@ use_syslog = False
 connection = mysql://keystone:<%= node["mysql-keystone-password"] %>@<%= node["master-ip-private"] %>/keystone?charset=utf8
 idle_timeout = 200
 
-[ldap]
-#url = ldap://localhost
-#tree_dn = dc=example,dc=com
-#user_tree_dn = ou=Users,dc=example,dc=com
-#role_tree_dn = ou=Roles,dc=example,dc=com
-#tenant_tree_dn = ou=Groups,dc=example,dc=com
-#user = dc=Manager,dc=example,dc=com
-#password = freeipa4all
-#suffix = cn=example,cn=com
-
 [identity]
+<% if node["ldap-integration"] -%>
+driver = keystone_ldap.core.Identity
+
+[ldap]
+url = <%= node["ldap-url"] %>
+user = <%= node["ldap-user"] %>
+password = <%= node["ldap-password"] %>
+group_tree_dn = <%= node["ldap-group-tree-dn"] %>
+user_tree_dn = <%= node["ldap-user-tree-dn"] %>
+user_objectclass = <%= node["ldap-user-objectclass"] %>
+user_id_attribute = <%= node["ldap-user-id-attribute"] %>
+user_name_attribute = <%= node["ldap-user-name-attribute"] %>
+<% else -%>
 driver = keystone.identity.backends.sql.Identity
+<% end -%>
 
 [catalog]
 driver = keystone.catalog.backends.templated.TemplatedCatalog

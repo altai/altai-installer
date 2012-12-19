@@ -20,7 +20,7 @@ require "uuid"
 log("Start to install keystone")
 node.set["mysql-keystone-password"] = UUID.new().generate()
 node.set["keystone-magic-token"] = UUID.new().generate()
-%w(openstack-keystone python-keystoneclient).each do |package_name|
+%w(openstack-keystone python-keystoneclient keystone-ldap).each do |package_name|
     package package_name  
 end
 
@@ -64,27 +64,15 @@ end
 log("Add admin, tenant and role")
 try "Add admin tenant, user and role" do
     environment ( {
-	'KCMD' => "keystone  --token=#{node["keystone-magic-token"]} --endpoint http://localhost:35357/v2.0",
-	'LOGIN' => node["admin-login-name"],
-	'PASSWD' => node["admin-login-password"],
-	'EMAIL' => node["admin-login-email"] })
+        'KCMD' => "keystone  --token=#{node["keystone-magic-token"]} --endpoint http://localhost:35357/v2.0",
+        'LOGIN' => node["admin-login-name"],
+        'PASSWD' => node["admin-login-password"],
+        'EMAIL' => node["admin-login-email"],
+        'DB_PASSWD' => node["mysql-keystone-password"],
+        'LDAP_INTEGRATION' => (node["ldap-integration"] ? "y" : "n")})
     code <<-EOH
     function get_id () { echo `$@ | awk '/ id / { print $4 }'`; }
     sleep 2
-    ADMIN_ROLE=`get_id $KCMD role-create --name admin`
-    if [ -z "$ADMIN_ROLE" ]
-    then
-	echo "Can't create admin role"
-	exit 100
-    fi
-    echo "Admin role: $ADMIN_ROLE"
-    MEMBER_ROLE=`get_id $KCMD role-create --name member`
-    if [ -z "$MEMBER_ROLE" ]
-    then
-	echo "Can't create member role user"
-	exit 100
-    fi
-    echo "Member role: $MEMBER_ROLE"
     TENANT=`get_id $KCMD tenant-create --name=systenant`
     if [ -z "$TENANT" ]
     then
@@ -92,11 +80,28 @@ try "Add admin tenant, user and role" do
 	exit 100
     fi
     echo "Tenant id: $TENANT"
-    # will be used later in focus receipt
-    echo "$TENANT" > /tmp/systenant.id
-    ADMIN=`get_id $KCMD user-create --name="$LOGIN" --tenant_id="$TENANT" --pass="$PASSWD" --email="$EMAIL" --enabled true`
-    echo "admin id: $ADMIN"
-    $KCMD user-role-add --user="$ADMIN" --role="$ADMIN_ROLE" --tenant_id="$TENANT"
+    if [ "$LDAP_INTEGRATION" == y ]; then
+        KEYSTONE_SQL="update tenant set extra='"'{"enabled": true, "description": null, "users": ["'$LOGIN'"]}'"' where name='systenant'"
+        mysql -ukeystone -p$DB_PASSWD keystone -e "$KEYSTONE_SQL"
+    else
+        ADMIN_ROLE=`get_id $KCMD role-create --name admin`
+        if [ -z "$ADMIN_ROLE" ]
+        then
+            echo "Can't create admin role"
+            exit 100
+        fi
+        echo "Admin role: $ADMIN_ROLE"
+        MEMBER_ROLE=`get_id $KCMD role-create --name member`
+        if [ -z "$MEMBER_ROLE" ]
+        then
+            echo "Can't create member role user"
+            exit 100
+        fi
+        echo "Member role: $MEMBER_ROLE"
+        ADMIN=`get_id $KCMD user-create --name="$LOGIN" --tenant_id="$TENANT" --pass="$PASSWD" --email="$EMAIL" --enabled true`
+        echo "admin id: $ADMIN"
+        $KCMD user-role-add --user="$ADMIN" --role="$ADMIN_ROLE" --tenant_id="$TENANT"
+    fi
     EOH
 end
 

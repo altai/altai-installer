@@ -47,15 +47,6 @@ execute "upload db" do
     command "cat /etc/focus/{invitations_dump,configured_hostnames}.sql | mysql -u focus -p#{node['mysql-focus-password']} focus"
 end
 
-try "update tenant_id in config file with real id" do
-    code <<-EOH
-    export TENANT_ID=`cat /tmp/systenant.id`
-    echo "Systenant id: $TENANT_ID"
-    rm /tmp/systenant.id
-    perl -i -pe 's/@~TENANT_ID~@/$ENV{TENANT_ID}/' /etc/focus/local_settings.py
-    EOH
-end
-
 log("Start services"){level :debug}
 service "memcached" do 
     action [:enable, :restart]
