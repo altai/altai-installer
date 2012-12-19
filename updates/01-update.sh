@@ -5,10 +5,15 @@ function is_master() {
 }
 
 if is_master; then
-    service odb stop
-    service focus stop
+    SERVICES="focus nova-billing-heart nova-billing-os-amqp instance-notifier"
+    PACKAGES="python-focus python-openstackclient-base nova-billing keystone-ldap"
+    for srv in odb $SERVICES; do
+        service $srv stop
+    done
     yum erase -y odb
-    yum install -y python-focus
-    service focus start
-    chkconfig --add focus
+    yum install -y $PACKAGES
+    for srv in $SERVICES; do
+        service $srv start
+        chkconfig --add $srv
+    done
 fi
