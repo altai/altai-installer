@@ -1,0 +1,9 @@
+Code-Review+2: Alessio Ababilov <aababilov@griddynamics.com>
+Verified+1: Alessio Ababilov <aababilov@griddynamics.com>
+Code-Review+1: Ivan Melnikov <imelnikov@griddynamics.com>
+Code-Review+1: Dmitry Maslennikov <dmaslennikov@griddynamics.com>
+Submitted-by: Jenkins <jenkins@griddynamics.net>
+Submitted-at: Fri, 21 Dec 2012 18:47:48 +0400
+Reviewed-on: http://khar.ci-cd.altai-dev.griddynamics.net/gerrit/204
+Project: altai-installer
+Branch: refs/heads/v1.1_trunk
