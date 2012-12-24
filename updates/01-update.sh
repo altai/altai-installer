@@ -17,3 +17,10 @@ if is_master; then
         chkconfig --add $srv
     done
 fi
+
+if rpm -q openstack-nova-compute &>/dev/null; then
+    if ! grep -q allow_resize_to_same_host /etc/nova/nova.conf; then
+        echo 'allow_resize_to_same_host = true' >> /etc/nova/nova.conf
+        service nova-compute restart
+    fi
+fi
