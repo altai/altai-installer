@@ -5,6 +5,8 @@ function is_master() {
 }
 
 if is_master; then
+    sed -i 's/CONFIGURED_HOSTNAME/CONFIGURED_URL/' /etc/focus/local_settings.py
+
     SERVICES="focus nova-billing-heart nova-billing-os-amqp instance-notifier"
     PACKAGES="python-focus python-openstackclient-base nova-billing keystone-ldap"
     for srv in odb $SERVICES; do

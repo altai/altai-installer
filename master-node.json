@@ -8,7 +8,7 @@
     "projects-interface": "eth0",
     "master-ip-private": "127.0.0.1",
     "master-ip-public": "10.0.2.15",
-    "master-configured-hostname": "http://10.0.2.15",
+    "master-configured-url": "http://10.0.2.15",
     "dns-zone": "dev-cloud.example.com",
     "mail-server": "localhost",
     "mail-sender-name": "robot",

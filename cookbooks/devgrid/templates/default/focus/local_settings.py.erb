@@ -33,5 +33,5 @@ ZABBIX_PROXY_DB = {
 }
 NOTIFICATIONS_API_URL = 'http://localhost:18080/'
 
-CONFIGURED_HOSTNAME = '<%= node["master-configured-hostname"] %>'
+CONFIGURED_URL = '<%= node["master-configured-url"] %>'
 LDAP_INTEGRATION = <%= node["ldap-integration"] ? "True" : "False" %>
