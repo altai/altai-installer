@@ -17,27 +17,135 @@
 
 DIR=$(readlink -f $(dirname $0))
 
+
 function usage() {
-    echo "Usage:   $0  [master|compute]"
-    echo "      master  - install controlling node"
+    echo "Usage:   $0  [--accept-eula] [-f|--force]  [master|compute]"
+    echo "      master  - install controlling node (default)"
     echo "      compute - install compute node"
     exit 1
 }
 
-if [ $1 = '--accept-eula' ]; then 
-    shift
-else 
+
+function die() {
+    echo "$@" >&2
+    exit 1
+}
+
+
+function error_start() {
+    echo
+    echo -e "\033[1;31m********************************************************************************"
+}
+
+
+function error_end() {
+    echo -e "********************************************************************************\033[0m"
+    echo
+}
+
+
+function check_ports() {
+    NETSTAT=$(netstat -anp | awk '/^(tcp.*LISTEN|udp)/ { print $1 "\t" $4 "\t" $(NF) }')
+    TCP_PLAN="80	nginx
+3333	nova-objectstore
+5000	keystone-all
+6080	novnc
+8080	focus
+8773	nova-api
+8774	nova-api
+8775	nova-api
+8776	nova-api
+8787	nova-billing-heart
+9191	glance-registry
+9292	glance-api
+15353	nova-dns
+18080	zabbix-notifier
+35357	keystone-all
+10050	zabbix_agentd
+10051	zabbix_server"
+
+    UDP_PLAN="53	dnsmasq
+123	ntpd"
+
+    TCP_MASK="$(echo "$TCP_PLAN" | awk 'BEGIN { ORS="|";} { print $1 }')"
+    TCP_MASK="${TCP_MASK%|}"
+    UDP_MASK="$(echo "$UDP_PLAN" | awk 'BEGIN { ORS="|";} { print $1 }')"
+    UDP_MASK="${UDP_MASK%|}"
+    ALTAI_BUSY_PORTS=$(echo "$NETSTAT" | grep -E "^(tcp.*:($TCP_MASK)|udp.*:($UDP_MASK))\b")
+
+    if [ -n "$ALTAI_BUSY_PORTS" ]; then
+        error_start
+        echo "Some ports needed by Altai services are already in use:"
+        echo "$ALTAI_BUSY_PORTS"
+        error_end
+        if [ $force_install == y ]; then
+            return
+        fi
+        read -p "Please click y to proceed, otherwise click n to terminate the installation process: " -r -n 1
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+}
+
+
+function get_param() {
+    receipt="$receipt" python -c 'import json; import os;
+print json.load(open(os.environ["receipt"]))["'$1'"]' ||
+        die "cannot read parameter $1"
+}
+
+
+function check_interface() {
+    iface=$(get_param "projects-interface") || exit $?
+    err=$(ifconfig $iface 2>&1 >/dev/null) || {
+        error_start
+        echo "$err"
+        echo "Please check projects-interface parameter in $receipt"
+        error_end
+        if [ $force_install == n ]; then
+            exit 1
+        fi
+    }
+}
+
+
+function check_receipt() {
+    if [ ! -r "$receipt" ]; then
+        die "$receipt is not found"
+    fi
+}
+
+
+accept_eula=n
+force_install=n
+install_mode="master"
+
+for arg in "$@"; do
+    case "$arg" in
+        --accept-eula)
+            accept_eula=y
+            ;;
+        master|compute)
+            install_mode="$arg"
+            ;;
+        -f|--force)
+            force_install=y
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+if [ $accept_eula == n ]; then
     cat ./EULA.txt
     read -p "If you agree with the terms, please click y to proceed, otherwise click n to terminate the installation process: " -r -n 1
+    echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
-    echo
-fi
-  
-if [[ $# -ne 1 || ("$1" != 'master' && "$1" != 'compute') ]]
-then
-    usage
 fi
 
 # set Permissive mode if SELinux is enabled
@@ -46,24 +154,23 @@ if selinuxenabled; then
 fi
 
 # install packages
-receipt="${1}-node.json"
+receipt="${install_mode}-node.json"
+check_receipt
+check_ports
+check_interface
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
-./_install.sh "$DIR" "$1" "$receipt" "$altailog" 2>&1 | tee -a "$altailog"
+./_install.sh "$DIR" "$install_mode" "$receipt" "$altailog" 2>&1 | tee -a "$altailog"
 
 # disable SELinux
 if selinuxenabled; then
     sed --follow-symlinks -i 's/SELINUX=.*$/SELINUX=disabled/' /etc/sysconfig/selinux
-    echo -e "\033[47m\033[1;31m**************************************************\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31m                                               \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31m>> \033[5mYou had SELinux enabled on your host!  \033[25m <<  \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31mAltai cannot work if SELinux is enabled.       \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31m                                               \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31mSELinux is now switched to Permissive mode     \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31mand disabled in /etc/sysconfig/selinux!        \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m*\033[0m \033[40m\033[1;31m                                               \033[47m\033[1;31m*\033[0m"
-    echo -e "\033[47m\033[1;31m**************************************************\033[0m"
+    error_start
+    echo "You had SELinux enabled on your host!"
+    echo "Altai cannot work if SELinux is enabled. SELinux is now switched"
+    echo "to Permissive mode and disabled in /etc/sysconfig/selinux!"
+    error_end
 fi
 
 # save version and release
