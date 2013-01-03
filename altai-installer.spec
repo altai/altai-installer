@@ -13,6 +13,8 @@ Source0:          %{name}-%{version}.tar.gz
 BuildRoot:        %{_tmppath}/%{name}-%{version}-build
 BuildArch:        noarch
 Requires:         altai-chef-gems
+Requires:         libselinux-utils
+Requires:         net-tools
 
 
 %description
