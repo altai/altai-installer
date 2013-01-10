@@ -32,6 +32,7 @@ dhcpbridge_flagfile = /etc/nova/nova.conf
 dhcpbridge = /usr/bin/nova-dhcpbridge
 public_interface = <%= node["projects-interface"] %>
 vlan_interface = <%= node["projects-interface"] %> 
+network_driver = nova_dns.nova_network_driver.NovaDnsNetworkDriver
 
 
 # COMPUTE
