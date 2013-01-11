@@ -15,7 +15,6 @@
 
 
 log("Start to install nova-dns")
-node.set["mysql-dns-password"] = UUID.new().generate()
 
 
 %w(nova-dns pdns pdns-backend-mysql).each do |pkg|

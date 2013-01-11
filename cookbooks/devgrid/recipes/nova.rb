@@ -14,11 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 
 require "rubygems"
-require "uuid"
 
 
 log("Start to install nova")
-log("Start to install nova-openstack")
+
 
 %w( openstack-nova-api 
     openstack-nova-network 
@@ -37,29 +36,6 @@ mysql_create_database "nova" do
     user :nova
     password node["mysql-nova-password"]
 end
-
-mysql_create_database "dns" do
-    user :dns
-    password node["mysql-dns-password"]
-end
-
-
-node["config_files"].push("/etc/nova/nova.conf")
-template "/etc/nova/nova.conf" do
-    source "nova/nova.conf.erb"
-    mode 00600
-    owner "nova"
-    group "nobody"
-end
-
-node["config_files"].push("/etc/nova/api-paste.ini")
-template "/etc/nova/api-paste.ini" do
-    source "nova/api-paste.ini.erb"
-    mode 00600
-    owner "nova"
-    group "nobody"
-end
-
 
 execute "db sync" do
     command "nova-manage db sync"
