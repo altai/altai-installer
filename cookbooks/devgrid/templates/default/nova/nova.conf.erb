@@ -32,6 +32,9 @@ dhcpbridge_flagfile = /etc/nova/nova.conf
 dhcpbridge = /usr/bin/nova-dhcpbridge
 public_interface = <%= node["projects-interface"] %>
 vlan_interface = <%= node["projects-interface"] %> 
+<% if node["roles"].include? "master-node" -%>
+network_driver = nova_dns.nova_network_driver.NovaDnsNetworkDriver
+<% end -%>
 
 
 # COMPUTE
@@ -65,6 +68,7 @@ vpn_client_template = /usr/share/nova/client.ovpn.template
 credentials_template = /usr/share/nova/novarc.template
 iscsi_helper = tgtadm
 
+<% if node["roles"].include? "master-node" -%>
 #Nova-DNS
 dns_sql_connection = mysql://dns:<%= node["mysql-dns-password"] %>@<%= node["master-ip-private"] %>/dns
 dns_default_ttl = 7200
@@ -73,6 +77,7 @@ dns_soa_email = hostmaster.<%= node["dns-zone"] %>
 dns_zone = <%= node["dns-zone"] %>
 dns_ns = ns1:<%= node["master-ip-public"] %>
 dns_ptr = true
+<% end -%>
 
 osapi_compute_extension = nova.api.openstack.compute.contrib.standard_extensions
 osapi_compute_extension = nova_networks.networks.Networks
