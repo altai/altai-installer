@@ -6,9 +6,10 @@
     "description": "DevGrid Compute Server Role",
     "chef_type": "role",
     "run_list": [
-	"devgrid::default", 
-    "devgrid::zabbix_agent",
-	"devgrid::compute",
-    "devgrid::altai_release"
+        "devgrid::default",
+        "devgrid::zabbix_agent",
+        "devgrid::nova_common",
+        "devgrid::compute",
+        "devgrid::altai_release"
     ]
 }

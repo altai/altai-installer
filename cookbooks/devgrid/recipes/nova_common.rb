@@ -12,32 +12,33 @@
 #    GNU Lesser General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
+require "uuid"
 
-require "rubygems"
+
+log("Start to install openstack-nova-common")
 
 
-log("Start to install nova-compute")
+node.set["mysql-dns-password"] = UUID.new().generate()
 
-%w( ntp dbus openstack-nova-compute ).each do |package_name|
-    package package_name 
+%w(openstack-nova-common).each do |pkg|
+    package pkg
 end
 
-#FIXME without kernel won't work guestfs. 
-#but in test enviroment packimage clean /boot/
-#either tune packimage or scp /boot/* later
-execute "update kernel" do
-    command "yum install -y kernel"
+node["config_files"].push("/etc/nova/nova.conf")
+template "/etc/nova/nova.conf" do
+    source "nova/nova.conf.erb"
+    mode 00600
+    owner "nova"
+    group "nova"
 end
 
-execute "add qemu in kvm group" do
-    command "usermod -a -G kvm qemu"
+node["config_files"].push("/etc/nova/api-paste.ini")
+template "/etc/nova/api-paste.ini" do
+    source "nova/api-paste.ini.erb"
+    mode 00600
+    owner "nova"
+    group "nova"
 end
 
-node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd nova-compute).each do |service|
-    service service do
-	action [:enable, :restart]
-    end
-end
 
-log("nova-compute was succesfully installed")
+log("openstack-nova-common was succesfully installed")
