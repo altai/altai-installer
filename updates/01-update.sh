@@ -35,6 +35,8 @@ if rpm -q openstack-nova-compute &>/dev/null; then
     fi
 fi
 
+sed -i 's/^scheduler_driver\b.*$/# do not oversell RAM\nram_allocation_ratio = 1.0\nscheduler_driver = nova.scheduler.filter_scheduler.FilterScheduler\n/' /etc/nova/nova.conf
+
 for srv in $SERVICES; do
     service $srv start
     chkconfig --add $srv
