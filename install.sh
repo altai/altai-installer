@@ -111,6 +111,27 @@ function check_interface() {
 }
 
 
+function exist_ip_param() {
+    ip_param=$(get_param "$1") || exit $?
+    /sbin/ip addr show | /bin/grep -q "inet $ip_param\>" || die "not exist in the system $1: $ip_param"
+}
+
+
+function check_ips() {
+    case "$install_mode" in
+        master)
+            exist_ip_param("master-ip-private")
+            exist_ip_param("master-ip-public")
+            ;;
+        compute)
+            exist_ip_param("compute-ip-private")
+            ;;
+        *)
+            die "not valid install_mode: $install_mode"
+            ;;
+    esac
+}
+
 function check_receipt() {
     if [ ! -r "$receipt" ]; then
         die "$receipt is not found"
@@ -158,6 +179,7 @@ receipt="${install_mode}-node.json"
 check_receipt
 check_ports
 check_interface
+check_ips
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
