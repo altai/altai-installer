@@ -111,6 +111,30 @@ function check_interface() {
 }
 
 
+function check_ip_exists() {
+    local ip_param=$(get_param "$1") || exit $?
+    /sbin/ip addr show | grep -q "inet $ip_param\>" || {
+        error_start
+        echo "This IP does not exist in the system: $1 = $ip_param"
+        error_end
+        exit 1
+    }
+}
+
+
+function check_ips() {
+    set -E
+    local run_list="$(get_param run_list)"
+    if [[ "$run_list" =~ .*master-node.* ]]; then
+        check_ip_exists "master-ip-private"
+        check_ip_exists "master-ip-public"
+    fi
+    if [[ "$run_list" =~ .*compute-node.* ]]; then
+        check_ip_exists "compute-ip-private"
+    fi
+    set +E
+}
+
 function check_receipt() {
     if [ ! -r "$receipt" ]; then
         die "$receipt is not found"
@@ -158,6 +182,7 @@ receipt="${install_mode}-node.json"
 check_receipt
 check_ports
 check_interface
+check_ips
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
