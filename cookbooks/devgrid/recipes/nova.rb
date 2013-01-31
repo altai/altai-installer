@@ -19,17 +19,19 @@ require "rubygems"
 log("Start to install nova")
 
 
-%w( openstack-nova-api 
-    openstack-nova-network 
-    openstack-nova-objectstore 
+%w( openstack-nova-api
+    openstack-nova-network
+    openstack-nova-objectstore
     openstack-nova-scheduler
     openstack-nova-volume
     python-novaclient
     openstack-nova-console
     openstack-noVNC
-    nova-networks-ext nova-fping-ext
+    nova-networks-ext
+    nova-fping-ext
+    nova-userinfo-ext
     ntp).each do |package_name|
-    package package_name 
+    package package_name
 end
 
 mysql_create_database "nova" do
@@ -41,7 +43,7 @@ execute "db sync" do
     command "nova-manage db sync"
 end
 
-%w(ntpd nova-api nova-network nova-scheduler nova-objectstore 
+%w(ntpd nova-api nova-network nova-scheduler nova-objectstore
     nova-consoleauth nova-novncproxy).each do |service|
     service service do
 	action [:enable, :restart]
