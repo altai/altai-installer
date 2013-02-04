@@ -6,6 +6,7 @@
     "admin-login-email": "dev-cloud-admin@example.com",
     "admin-login-password": "secrete",
     "projects-interface": "eth0",
+    "management-network": "10.0.0.0/24",
     "master-ip-private": "127.0.0.1",
     "master-ip-public": "10.0.2.15",
     "master-configured-url": "http://10.0.2.15",
