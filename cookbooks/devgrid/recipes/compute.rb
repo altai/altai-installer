@@ -33,11 +33,46 @@ execute "add qemu in kvm group" do
     command "usermod -a -G kvm qemu"
 end
 
+# Live-migration preparations
+#execute "Patch libvirtd conf files for live migration" do
+#    command "sed -i 's/#listen_tls = 0/listen_tls = 0/g' /etc/libvirt/libvirtd.conf"
+#end
+
+script "Patch libvirtd conf files for live migration" do
+  interpreter "bash"
+  user "root"
+  code <<-EOH
+  sed -i 's/#listen_tls/listen_tls/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#listen_tcp/listen_tcp/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#auth_tcp = \"sasl\"/auth_tcp = \"none\"/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#LIBVIRTD_ARGS=\"--listen\"/LIBVIRTD_ARGS=\"--listen\"/g' /etc/sysconfig/libvirtd
+  EOH
+end
+
+#script "Patch /etc/sysconfig/iptables on compute node" do
+#  interpreter "bash"
+#  user "root"
+#  code <<-EOH
+#  sed -i '/comment --comment/d' /etc/sysconfig/iptables
+#  EOH
+#  only_if "test $ROLE = compute"
+#end
+
+
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd nova-compute).each do |service|
+%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
     service service do
 	action [:enable, :restart]
     end
 end
+
+node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
+%w(nova-compute nova-network).each do |service|
+    service service do
+        action [:enable, :restart]
+        only_if "test $ROLE = master"
+    end
+end
+
 
 log("nova-compute was succesfully installed")
