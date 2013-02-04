@@ -23,7 +23,9 @@
     "ldap-password": "",
     "ldap-group-tree-dn": "",
     "ldap-user-tree-dn": "",
+    "ldap-group-objectclass": "group",
     "ldap-user-objectclass": "organizationalPerson",
     "ldap-user-id-attribute": "uid",
-    "ldap-user-name-attribute": "uid"
+    "ldap-user-name-attribute": "uid",
+    "ldap-group-name-attribute": "name"
 }
