@@ -62,7 +62,8 @@ function check_ports() {
 18080	zabbix-notifier
 35357	keystone-all
 10050	zabbix_agentd
-10051	zabbix_server"
+10051	zabbix_server
+16509   libvirtd"
 
     UDP_PLAN="53	dnsmasq
 123	ntpd"
