@@ -18,7 +18,7 @@ require "rubygems"
 
 log("Start to install nova-compute")
 
-%w( ntp dbus openstack-nova-compute ).each do |package_name|
+%w( dbus openstack-nova-compute ).each do |package_name|
     package package_name 
 end
 
@@ -33,11 +33,46 @@ execute "add qemu in kvm group" do
     command "usermod -a -G kvm qemu"
 end
 
+# Prevent virbr0 auto creation
+log("Prevent virbr0 auto creation")
+execute "Prevent virbr0 auto creation" do
+    command "rm -rf /etc/libvirt/qemu/networks/autostart/*"
+end
+
+
+# Live-migration preparations
+log("Live-migration preparations")
+script "Patch libvirtd conf files for live migration" do
+  interpreter "bash"
+  user "root"
+  code <<-EOH
+  sed -i 's/#listen_tls/listen_tls/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#listen_tcp/listen_tcp/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#auth_tcp = \"sasl\"/auth_tcp = \"none\"/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#LIBVIRTD_ARGS=\"--listen\"/LIBVIRTD_ARGS=\"--listen\"/g' /etc/sysconfig/libvirtd
+  EOH
+end
+
+
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd nova-compute).each do |service|
+%w( messagebus libvirtd nova-compute ).each do |service|
     service service do
 	action [:enable, :restart]
     end
 end
+
+
+%w( iptables nova-compute ).each do |service|
+    service service do
+        action [:stop]
+    end
+end
+
+%w( iptables nova-compute ).each do |service|
+    service service do
+        action [:enable, :start]
+    end
+end
+
 
 log("nova-compute was succesfully installed")

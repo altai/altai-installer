@@ -6,6 +6,6 @@
     "compute-ip-private": "10.0.100.2",
     "master-ip-private": "10.0.100.1",
     "master-ip-public": "10.0.80.1",
-    "projects-interface": "eth2",
+    "projects-interface": "eth0",
     "dns-zone": "dev-cloud.example.com"
 }
