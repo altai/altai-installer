@@ -33,11 +33,41 @@ execute "add qemu in kvm group" do
     command "usermod -a -G kvm qemu"
 end
 
+# Prevent virbr0 auto creation
+log("Prevent virbr0 auto creation")
+execute "Prevent virbr0 auto creation" do
+    command "rm -rf /etc/libvirt/qemu/networks/autostart/*"
+end
+
+
+# Live-migration preparations
+log("Live-migration preparations")
+script "Patch libvirtd conf files for live migration" do
+  interpreter "bash"
+  user "root"
+  code <<-EOH
+  sed -i 's/#listen_tls/listen_tls/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#listen_tcp/listen_tcp/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#auth_tcp = \"sasl\"/auth_tcp = \"none\"/g' /etc/libvirt/libvirtd.conf
+  sed -i 's/#LIBVIRTD_ARGS=\"--listen\"/LIBVIRTD_ARGS=\"--listen\"/g' /etc/sysconfig/libvirtd
+  EOH
+end
+
+
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd nova-compute).each do |service|
+%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
     service service do
 	action [:enable, :restart]
     end
 end
+
+node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
+%w(nova-network).each do |service|
+    service service do
+        action [:enable, :restart]
+        only_if "test $ROLE = master"
+    end
+end
+
 
 log("nova-compute was succesfully installed")
