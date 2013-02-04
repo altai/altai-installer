@@ -29,8 +29,7 @@ log("Start to install nova")
     openstack-noVNC
     nova-networks-ext
     nova-fping-ext
-    nova-userinfo-ext
-    ntp).each do |package_name|
+    nova-userinfo-ext ).each do |package_name|
     package package_name
 end
 
@@ -43,8 +42,8 @@ execute "db sync" do
     command "nova-manage db sync"
 end
 
-%w(ntpd nova-api nova-network nova-scheduler nova-objectstore
-    nova-consoleauth nova-novncproxy).each do |service|
+%w( nova-api nova-network nova-scheduler nova-objectstore
+    nova-consoleauth nova-novncproxy ).each do |service|
     service service do
 	action [:enable, :restart]
     end
