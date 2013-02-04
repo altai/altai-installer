@@ -52,6 +52,7 @@ use_cow_images = true
 # by default the same as source image
 snapshot_image_format = qcow2
 libvirt_snapshot_dir=/var/lib/nova/images/tmp
+block_migration_flag = VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER, VIR_MIGRATE_NON_SHARED_INC, VIR_MIGRATE_LIVE
 
 # VNC
 vnc_enabled = true
