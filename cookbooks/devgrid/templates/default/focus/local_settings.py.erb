@@ -35,3 +35,10 @@ NOTIFICATIONS_API_URL = 'http://localhost:18080/'
 
 CONFIGURED_URL = '<%= node["master-configured-url"] %>'
 LDAP_INTEGRATION = <%= node["ldap-integration"] ? "True" : "False" %>
+<% if node["ldap-integration"] == "True" %>
+LDAP_URL = '<%= node["ldap-url"] %>'
+LDAP_USER = '<%= node["ldap-user"] %>'
+LDAP_PASSWORD = '<%= node["ldap-password"] %>'
+LDAP_GROUP_TREE_DN = '<%= node["ldap-group-tree-dn"] %>'
+LDAP_GROUP_TREE_OBJECTCLASS = '<%= node["ldap-group-objectclass"] %>'
+{% end %}
