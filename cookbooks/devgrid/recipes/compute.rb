@@ -48,7 +48,7 @@ script "Patch libvirtd conf files for live migration" do
   sed -i 's/#LIBVIRTD_ARGS=\"--listen\"/LIBVIRTD_ARGS=\"--listen\"/g' /etc/sysconfig/libvirtd
   EOH
 end
-
+###
 #script "Patch /etc/sysconfig/iptables on compute node" do
 #  interpreter "bash"
 #  user "root"
@@ -57,7 +57,7 @@ end
 #  EOH
 #  only_if "test $ROLE = compute"
 #end
-
+###
 
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
 %w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
