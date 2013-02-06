@@ -64,9 +64,17 @@ end
 
 
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd iptables nova-compute nova-network).each do |service|
+%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
     service service do
 	action [:enable, :restart]
+    end
+end
+
+node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
+%w(nova-network).each do |service|
+    service service do
+        action [:enable, :restart]
+        only_if "test $ROLE = master"
     end
 end
 
