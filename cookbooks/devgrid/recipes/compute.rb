@@ -33,11 +33,15 @@ execute "add qemu in kvm group" do
     command "usermod -a -G kvm qemu"
 end
 
-# Live-migration preparations
-#execute "Patch libvirtd conf files for live migration" do
-#    command "sed -i 's/#listen_tls = 0/listen_tls = 0/g' /etc/libvirt/libvirtd.conf"
-#end
+# Prevent virbr0 auto creation
+log("Prevent virbr0 auto creation")
+execute "Prevent virbr0 auto creation" do
+    command "rm -rf /etc/libvirt/qemu/networks/autostart/*"
+end
 
+
+# Live-migration preparations
+log("Live-migration preparations")
 script "Patch libvirtd conf files for live migration" do
   interpreter "bash"
   user "root"
@@ -48,29 +52,21 @@ script "Patch libvirtd conf files for live migration" do
   sed -i 's/#LIBVIRTD_ARGS=\"--listen\"/LIBVIRTD_ARGS=\"--listen\"/g' /etc/sysconfig/libvirtd
   EOH
 end
-###
-#script "Patch /etc/sysconfig/iptables on compute node" do
-#  interpreter "bash"
-#  user "root"
-#  code <<-EOH
-#  sed -i '/comment --comment/d' /etc/sysconfig/iptables
-#  EOH
-#  only_if "test $ROLE = compute"
-#end
-###
 
-node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
-    service service do
-	action [:enable, :restart]
-    end
+script "Patch /etc/sysconfig/iptables on compute node" do
+  interpreter "bash"
+  user "root"
+  code <<-EOH
+  echo "POLE="$ROLE
+  test $ROLE = "compute" && sed -i '/comment --comment/d' /etc/sysconfig/iptables
+  EOH
 end
 
+
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(nova-compute nova-network).each do |service|
+%w(ntpd messagebus libvirtd iptables nova-compute nova-network).each do |service|
     service service do
-        action [:enable, :restart]
-        only_if "test $ROLE = master"
+	action [:enable, :restart]
     end
 end
 
