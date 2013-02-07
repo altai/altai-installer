@@ -12,7 +12,19 @@
 #    GNU Lesser General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-
+require "rubygems"
 
 node["services"] = []
 node["config_files"] = []
+
+package ntp
+
+# ntp force sync setup
+log("NTP force sync setup")
+execute "ntp force sync" do
+    command "ntpdate pool.ntp.org"
+end
+
+service ntpd do
+    action [:enable, :restart]
+end
