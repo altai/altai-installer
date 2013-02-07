@@ -18,7 +18,7 @@ require "rubygems"
 
 log("Start to install nova-compute")
 
-%w( ntp dbus openstack-nova-compute ).each do |package_name|
+%w( dbus openstack-nova-compute ).each do |package_name|
     package package_name 
 end
 
@@ -55,17 +55,9 @@ end
 
 
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
+%w( messagebus libvirtd nova-compute ).each do |service|
     service service do
 	action [:enable, :restart]
-    end
-end
-
-node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(nova-network).each do |service|
-    service service do
-        action [:enable, :restart]
-        only_if "test $ROLE = master"
     end
 end
 
