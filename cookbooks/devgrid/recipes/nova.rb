@@ -43,6 +43,12 @@ execute "db sync" do
     command "nova-manage db sync"
 end
 
+# ntp force sync setup
+log("NTP force sync setup")
+execute "ntp force sync" do
+    command "ntpdate pool.ntp.org"
+end
+
 %w(ntpd nova-api nova-network nova-scheduler nova-objectstore
     nova-consoleauth nova-novncproxy).each do |service|
     service service do
