@@ -43,6 +43,11 @@ execute "db sync" do
     command "nova-manage db sync"
 end
 
+# ntp force sync setup
+execute "ntp force sync" do
+    command "sed -e 's/-u/-x -u/g' /etc/sysconfig/ntpd"
+end
+
 %w(ntpd nova-api nova-network nova-scheduler nova-objectstore
     nova-consoleauth nova-novncproxy).each do |service|
     service service do

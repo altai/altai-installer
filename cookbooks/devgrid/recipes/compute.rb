@@ -53,19 +53,16 @@ script "Patch libvirtd conf files for live migration" do
   EOH
 end
 
-
-node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(ntpd messagebus libvirtd iptables nova-compute).each do |service|
-    service service do
-	action [:enable, :restart]
-    end
+# ntp force sync setup
+execute "ntp force sync" do
+    command "sed -e 's/-u/-x -u/g' /etc/sysconfig/ntpd"
 end
 
+
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w(nova-network).each do |service|
+%w(ntpd messagebus libvirtd nova-compute).each do |service|
     service service do
-        action [:enable, :restart]
-        only_if "test $ROLE = master"
+	action [:enable, :restart]
     end
 end
 
