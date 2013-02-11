@@ -62,4 +62,19 @@ node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
 end
 
 
+node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
+%w( iptables nova-compute ).each do |service|
+    service service do
+        action [:stop]
+    end
+end
+
+node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
+%w( iptables nova-compute ).each do |service|
+    service service do
+        action [:enable, :start]
+    end
+end
+
+
 log("nova-compute was succesfully installed")
