@@ -1,0 +1,150 @@
+#!/usr/bin/python
+
+import json
+import subprocess
+import sys
+import ConfigParser
+
+
+def update_paste():
+    paste_files = ["/etc/glance/glance-api-paste.ini",
+                   "/etc/glance/glance-registry-paste.ini",
+                   "/etc/nova/api-paste.ini"]
+    print "Updating paste files: %s" % ", ".join(paste_files)
+    subprocess.call([
+            "sed",
+            "-i",
+            "-e",
+            "s/^admin_user.*/admin_user = %s/" % admin_login_name,
+            "-e",
+            "s/^admin_password.*/admin_password = %s/" % admin_login_password,
+    ] + paste_files)
+    print "done"
+
+
+def update_py():
+    py_files = ["/etc/focus/local_settings.py",
+                "/etc/instance-notifier/local_settings.py"]
+    print "Updating python files: %s" % ", ".join(py_files)
+    subprocess.call([
+            "sed",
+            "-i",
+            "-e",
+            "s/'username':.*$/'username': '%s',/" % admin_login_name,
+            "-e",
+            "s/'password':.*$/'password': '%s',/" % admin_login_password,
+    ] + py_files)
+    subprocess.call([
+            "sed",
+            "-i",
+            "-e",
+            "/LDAP_INTEGRATION/d",
+            "/etc/focus/local_settings.py",
+    ])
+
+    with open("/etc/focus/local_settings.py", "a") as f:
+        f.write("LDAP_INTEGRATION = %s\n" %
+                ("True" if ldap_integration else "False"))
+    print "done"
+
+
+def update_json():
+    # configure nova-billing
+    fname = "/etc/nova-billing/settings.json"
+    print "Updating json file %s" % fname
+    with open(fname, "r") as f:
+        billing_json = json.load(f)
+    billing_json["keystone_conf"]["username"] = admin_login_name
+    billing_json["keystone_conf"]["password"] = admin_login_password
+    with open(fname, "w") as f:
+        json.dump(billing_json, f, indent=4, sort_keys=True)
+    print "done"
+
+
+def update_keystone_db():
+    if ldap_integration:
+        print "Updating keystone database"
+        keystone_sql="""update tenant set extra='{"enabled": true, "description": null, "users": ["%s"]}' where name='systenant'""" % admin_login_name
+        subprocess.call([
+                "mysql",
+                "-uroot",
+                "-p%s" % conf_json["mysql-root-password"],
+                "keystone",
+                "-e",
+                keystone_sql,
+        ])
+        print "done"
+
+
+def update_keystone_conf():
+    keystone_conf = "/etc/keystone/keystone.conf"
+    print "Updating keystone config %s" % keystone_conf
+    config = ConfigParser.ConfigParser()
+    config.read(keystone_conf)
+    print config.get("identity", "driver")
+    if ldap_integration:
+        config.set("identity", "driver", "keystone_ldap.core.Identity")
+        try:
+            config.add_section("ldap")
+        except ConfigParser.DuplicateSectionError:
+            pass
+        for option in ("url", "user", "password",
+                       "group_tree_dn", "user_tree_dn",
+                       "user_objectclass", "user_id_attribute",
+                       "user_name_attribute"):
+            config.set(
+                "ldap",
+                option,
+                conf_json.get("ldap-%s" % option.replace("_", "-"), ""))
+    else:
+        config.set("identity", "driver",
+                   "keystone.identity.backends.sql.Identity")
+    with open(keystone_conf, "w") as f:
+        config.write(f)
+
+    print "done"
+
+
+def restart_daemons():
+    print "Restarting daemons"
+    for d in ("keystone",
+              "nova-api", "glance-api", "glance-registry",
+              "nova-billing-heart", "nova-billing-os-amqp",
+              "instance-notifier", "focus"):
+        subprocess.call(["service", d, "restart"])
+    print "done"
+
+
+ALTAI_INSTALLER_DIR = "/opt/altai"
+    
+if (subprocess.call([
+        "bash", "-c",
+        "%s/tools/node-roles | grep -q master" % ALTAI_INSTALLER_DIR]) != 0):
+    print "error: This script must be run on master node"
+    sys.exit(1)
+
+
+conf_fname = "%s/master-node.json" % ALTAI_INSTALLER_DIR
+with open(conf_fname, "r") as f:
+    conf_json = json.load(f)
+
+admin_login_name = conf_json["admin-login-name"]
+admin_login_password = conf_json["admin-login-password"]
+ldap_integration = conf_json.get("ldap-integration", False)
+
+print "Setting admin credentials to %s:%s" % (admin_login_name,
+                                              admin_login_password)
+print "LDAP is %s" % ("enabled" if ldap_integration else "disabled")
+
+try:
+    update_paste()
+    update_py()
+    update_json()
+    update_keystone_db()
+    update_keystone_conf()
+    restart_daemons()
+except Exception as ex:
+    print "error: %s." % ex
+    print "System was partially updated and probably unstable."
+    print "Please resolve this issue manually."
+    sys.exit(1)

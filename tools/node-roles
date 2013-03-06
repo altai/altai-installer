@@ -1,0 +1,6 @@
+#!/bin/bash
+
+nova_pkg="$(rpm -qa openstack-nova*)"
+echo "$nova_pkg" | grep -q -- -api && echo -n "master "
+echo "$nova_pkg" | grep -q -- -compute && echo -n "compute "
+echo
