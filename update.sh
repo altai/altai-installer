@@ -1,25 +1,17 @@
 #!/bin/bash
 
-release_file=/etc/altai-release
+cd "$(dirname "$0")"
+source "updates/functions.sh"
 
-if [ ! -r $release_file ]; then
-    old_release="1.0.0"
+determine_versions
+
+if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+    build_version_list
+    determine_node_roles
+    check_updatable
+    incremental_update
+    store_version "$NEW_VERSION"
+    echo "Altai is updated"
 else
-    old_release="$(< $release_file)"
-fi
-
-new_release=$(rpm -q --queryformat '%{VERSION}\n' altai-release)
-
-if [ "$new_release" != "$old_release" ]; then
-    cd "$(dirname "$0")/updates"
-    for script in *; do
-        if [ -x $script ]; then
-            echo "executing $script"
-            ./$script
-        fi
-    done
-    echo "$new_release" > $release_file
-    echo "altai is updated"
-else
-    echo "altai has been already updated"
+    echo "Altai has been already updated"
 fi
