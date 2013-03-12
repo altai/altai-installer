@@ -124,7 +124,7 @@ if (subprocess.call([
     sys.exit(1)
 
 
-conf_fname = "%s/master-node.json" % ALTAI_INSTALLER_DIR
+conf_fname = "%s/altai-node.json" % ALTAI_INSTALLER_DIR
 with open(conf_fname, "r") as f:
     conf_json = json.load(f)
 

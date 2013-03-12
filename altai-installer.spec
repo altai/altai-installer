@@ -23,7 +23,7 @@ Chef-based installer for Altai
 
 %prep
 %setup -q
-
+rm -f *spec
 
 %build
 
