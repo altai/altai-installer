@@ -15,8 +15,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-DIR=$(readlink -f $(dirname $0))
+cd "$(dirname "$0")"
 
+set -e
 
 function usage() {
     echo "Usage:   $0  [--accept-eula] [-f|--force]  [master|compute]"
@@ -92,18 +93,18 @@ function check_ports() {
 
 
 function get_param() {
-    receipt="$receipt" python -c 'import json; import os;
-print json.load(open(os.environ["receipt"]))["'$1'"]' ||
-        die "cannot read parameter $1"
+    python -c 'import json; import os;
+print json.load(open("altai-node.json"))["'$1'"]' ||
+       die "cannot read parameter $1"
 }
 
 
 function check_interface() {
-    iface=$(get_param "projects-interface") || exit $?
+    iface=$(get_param "projects-interface")
     err=$(ifconfig $iface 2>&1 >/dev/null) || {
         error_start
         echo "$err"
-        echo "Please check projects-interface parameter in $receipt"
+        echo "Please check projects-interface parameter in altai-node.json"
         error_end
         if [ $force_install == n ]; then
             exit 1
@@ -113,7 +114,7 @@ function check_interface() {
 
 
 function check_ip_exists() {
-    local ip_param=$(get_param "$1") || exit $?
+    local ip_param=$(get_param "$1")
     /sbin/ip addr show | grep -q "inet $ip_param\>" || {
         error_start
         echo "This IP does not exist in the system: $1 = $ip_param"
@@ -124,7 +125,6 @@ function check_ip_exists() {
 
 
 function check_ips() {
-    set -E
     local run_list="$(get_param run_list)"
     if [[ "$run_list" =~ .*master-node.* ]]; then
         check_ip_exists "master-ip-private"
@@ -133,13 +133,17 @@ function check_ips() {
     if [[ "$run_list" =~ .*compute-node.* ]]; then
         check_ip_exists "compute-ip-private"
     fi
-    set +E
 }
 
 function check_receipt() {
+    if [ -r altai-node.json ]; then
+        return
+    fi
+    local receipt="${install_mode}-node.json"
     if [ ! -r "$receipt" ]; then
         die "$receipt is not found"
     fi
+    cp $receipt altai-node.json
 }
 
 
@@ -179,7 +183,6 @@ if selinuxenabled; then
 fi
 
 # install packages
-receipt="${install_mode}-node.json"
 check_receipt
 check_ports
 check_interface
@@ -187,7 +190,7 @@ check_ips
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
-./_install.sh "$DIR" "$install_mode" "$receipt" "$altailog" 2>&1 | tee -a "$altailog"
+./_install.sh "$PWD" "$install_mode" altai-node.json "$altailog" 2>&1 | tee -a "$altailog"
 
 # disable SELinux
 if selinuxenabled; then

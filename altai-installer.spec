@@ -23,7 +23,7 @@ Chef-based installer for Altai
 
 %prep
 %setup -q
-
+rm -f *spec
 
 %build
 
@@ -37,6 +37,21 @@ rm -f %{buildroot}%{targetdir}/COPYING* %{buildroot}%{targetdir}/*spec
 
 %clean
 rm -rf %{buildroot}
+
+
+%pre
+if [ -n "$(rpm -qa openstack-nova*api*)" ]; then
+    config_file=master
+else
+    config_file=compute
+fi
+config_file=/opt/altai/${config_file}-node.json
+[ ! -r $config_file ] || mv $config_file /tmp/altai-node.json
+
+
+%post
+config_file=/tmp/altai-node.json
+[ ! -r $config_file ] || mv $config_file /opt/altai/altai-node.json
 
 
 %files
