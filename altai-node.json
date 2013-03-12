@@ -1,5 +1,5 @@
 {
-    "run_list": [ "role[master-node]" ],
+    "run_list": [ "role[master-node]", "role[compute-node]" ],
     "mysql-root-password": "4D4B9D7E-3094-419C-9D8C-88F94E3D2801",
     "mysql-nova-password": "AFBD6ED7-88DC-4DF0-BF91-52BBF0145059",
     "admin-login-name": "admin",
@@ -8,7 +8,8 @@
     "projects-interface": "eth0",
     "management-network": "10.0.0.0/24",
     "master-ip-private": "127.0.0.1",
-    "master-ip-public": "10.0.2.15",
+    "master-ip-public": "127.0.0.1",
+    "compute-ip-private": "127.0.0.1",
     "master-configured-url": "http://10.0.2.15",
     "dns-zone": "dev-cloud.example.com",
     "mail-server": "localhost",
