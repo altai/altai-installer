@@ -25,6 +25,7 @@ if is_master; then
     if ! grep -q LDAP_INTEGRATION /etc/focus/local_settings.py; then
         echo 'LDAP_INTEGRATION = False' >> /etc/focus/local_settings.py
     fi
+    yum install -y nova-db-clean
 fi
 
 yum install -y $PACKAGES

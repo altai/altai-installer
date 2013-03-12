@@ -27,6 +27,7 @@ log("Start to install nova")
     python-novaclient
     openstack-nova-console
     openstack-noVNC
+    nova-db-clean
     nova-networks-ext
     nova-fping-ext
     nova-userinfo-ext ).each do |package_name|
