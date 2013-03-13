@@ -59,13 +59,12 @@ function check_ports() {
 9191	glance-registry
 9292	glance-api
 15353	nova-dns
-18080	zabbix-notifier
 35357	keystone-all
-10050	zabbix_agentd
-10051	zabbix_server
+6343	hsflow
 16509	libvirtd"
 
     UDP_PLAN="53	dnsmasq
+6343    hsflow
 123	ntpd"
 
     TCP_MASK="$(echo "$TCP_PLAN" | awk 'BEGIN { ORS="|";} { print $1 }')"
@@ -142,12 +141,20 @@ function check_receipt() {
     fi
 }
 
+function check_management-network() {
+    m_net=$(get_param "management-network") || {
+        error_start
+        echo "Please check and specify management-network parameter in $receipt"
+        error_end
+        if [ $force_install == n ]; then
+            exit 1
+        fi
+    }
+}
 
 accept_eula=n
 force_install=n
-install_mode="master"
-
-for arg in "$@"; do
+install_mode="master"for arg in "$@"; do
     case "$arg" in
         --accept-eula)
             accept_eula=y
@@ -184,6 +191,7 @@ check_receipt
 check_ports
 check_interface
 check_ips
+check_management-network
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
