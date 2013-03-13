@@ -14,35 +14,24 @@
 #    You should have received a copy of the GNU General Public License
 
 
-log("Start to install zabbix-agent")
+require "rubygems"
+#require "uuid"
 
+log("Start to install hsflowd")
 
-package "zabbix-agent"
+package "hsflowd"
 
-ruby_block "reset group list" do
-  block do
-    Etc.endgrent
-  end
-end
-
-template "/etc/zabbix_agent.conf" do
-    source "zabbix_agent.conf.erb"
-    mode 00640
+template "/etc/hsflowd.conf" do
+    source "hsflowd/hsflowd.conf.erb"
+    mode 00644
     owner "root"
-    group "zabbix"
+    group "root"
 end
 
-template "/etc/zabbix_agentd.conf" do
-    source "zabbix_agentd.conf.erb"
-    mode 00640
-    owner "root"
-    group "zabbix"
-end
+log("Start hsflowd services"){level :debug}
 
-log("Start services"){level :debug}
-service "zabbix-agentd" do 
+service "hsflowd" do
     action [:enable, :restart]
 end
 
-
-log("zabbix-agent was succesfully installed")
+log("hsflowd was succesfully installed")

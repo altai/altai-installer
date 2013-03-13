@@ -77,5 +77,10 @@ end
     end
 end
 
+%w( hsflowd php-fpm gmond gmetad ).each do |service|
+    service service do
+        action [:enable, :restart]
+    end
+end
 
 log("nova-compute was succesfully installed")

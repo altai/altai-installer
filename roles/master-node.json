@@ -10,7 +10,7 @@
         "devgrid::iptables",
         "devgrid::rabbit",
         "devgrid::mysql",
-        "devgrid::zabbix",
+        "devgrid::ganglia",
         "devgrid::keystone",
         "devgrid::nova_common",
         "devgrid::nova_dns",
@@ -18,7 +18,7 @@
         "devgrid::glance",
         "devgrid::nova_billing",
         "devgrid::focus",
-        "devgrid::zabbix_notifier",
+        "devgrid::hsflow",
         "devgrid::instance_notifier",
         "devgrid::altai_release"
     ]
