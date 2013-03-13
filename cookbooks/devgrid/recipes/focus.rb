@@ -43,6 +43,14 @@ template "/etc/focus/gunicorn_config.py" do
     group "root"
 end
 
+template "/etc/nginx/conf.d/focus.conf" do
+    source "focus/focus.conf.erb"
+    mode 00644
+    owner "root"
+    group "root"
+end
+
+
 execute "upload db" do 
     command "cat /etc/focus/{invitations_dump,configured_hostnames}.sql | mysql -u focus -p#{node['mysql-focus-password']} focus"
 end
