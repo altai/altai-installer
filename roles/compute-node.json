@@ -8,7 +8,7 @@
     "run_list": [
         "devgrid::default",
         "devgrid::iptables",
-        "devgrid::zabbix_agent",
+        "devgrid::hsflow",
         "devgrid::nova_common",
         "devgrid::compute",
         "devgrid::altai_release"

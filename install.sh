@@ -59,10 +59,8 @@ function check_ports() {
 9191	glance-registry
 9292	glance-api
 15353	nova-dns
-18080	zabbix-notifier
 35357	keystone-all
-10050	zabbix_agentd
-10051	zabbix_server
+6343	hsflow
 16509	libvirtd"
 
     UDP_PLAN="53	dnsmasq

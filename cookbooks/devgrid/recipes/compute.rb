@@ -77,5 +77,8 @@ end
     end
 end
 
+service "hsflowd" do
+    action [:enable, :restart]
+end
 
 log("nova-compute was succesfully installed")

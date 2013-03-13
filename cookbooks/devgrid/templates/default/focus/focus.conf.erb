@@ -1,0 +1,37 @@
+server {
+       listen 80;
+       server_name  focus;
+       client_max_body_size 0;
+
+       location / {
+                proxy_pass http://0.0.0.0:8080/;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+
+        location /static/ {
+                root /usr/lib/python2.6/site-packages/focus;
+        }
+
+	location /fast-upload/ {
+		upload_store /var/lib/focus/uploads/files/;
+		upload_pass /fast-upload-response/;
+		upload_store_access user:rw group:rw all:rw;
+		upload_set_form_field $upload_field_name.name "$upload_file_name";
+		upload_set_form_field $upload_field_name.content_type "$upload_content_type";
+		upload_set_form_field $upload_field_name.path "$upload_tmp_path";
+	}
+
+        location /ganglia/ {
+            root /var/www/html;
+            index index.php;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+        }
+
+}
+
