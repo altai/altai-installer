@@ -20,6 +20,11 @@ service "iptables" do
     action :stop
 end
 
+# vnc security fix won't work without qemu user
+execute "install qemu package" do
+    command "yum install -y qemu-kvm"
+end
+
 node["config_files"].push("/etc/sysconfig/iptables")
 template "/etc/sysconfig/iptables" do
     source "sysconfig/iptables.erb"
