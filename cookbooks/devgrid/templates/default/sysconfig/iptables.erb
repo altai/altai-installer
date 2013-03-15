@@ -12,8 +12,13 @@
 -A INPUT -d <%= node["compute-ip-private"] %> -m state --state NEW -m tcp -p tcp --dport 10050 -m comment --comment "zabbix-server API" -j ACCEPT
 -A INPUT -d <%= node["compute-ip-private"] %> -m state --state NEW -m tcp -p tcp --dport 10051 -m comment --comment "zabbix-server" -j ACCEPT
 -A INPUT -d <%= node["compute-ip-private"] %> -m state --state NEW -m tcp -p tcp --dport    81 -m comment --comment "zabbix-server API" -j ACCEPT
--A INPUT -d <%= node["compute-ip-private"] %> -m multiport -p tcp --dport 5900:5999 -m comment --comment "vnc" -j ACCEPT
+# live migration
 -A INPUT -s <%= node["management-network"] %> -m multiport -p tcp --dport 16509,49152:49161 -j ACCEPT
+# vnc
+-A INPUT -d <%= node["compute-ip-private"] %> -m multiport -p tcp --dport 5900:6079 -m comment --comment "vnc" -j ACCEPT
+-A OUTPUT -d <%= node["management-network"] %> -m owner --uid-owner qemu -j ACCEPT
+-A OUTPUT -m owner --uid-owner qemu -j REJECT
+#
 <% end -%>
 -A INPUT -p udp --dport 123 -j ACCEPT
 <% if node["roles"].include? "master-node" -%>
