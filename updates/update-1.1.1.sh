@@ -27,9 +27,10 @@ PACKAGES_EXCLUDE_COMPUTE="
 usbredir
 "
 
-function prein_master() {
-    # newer python-jinja2 provides python-jinja2-26
-    yum -y reinstall python-jinja2 || true
+function postin_common() {
+    echo 'osapi_compute_extension = nova_userinfo.userinfo.UserInfo
+block_migration_flag = VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER, VIR_MIGRATE_NON_SHARED_INC, VIR_MIGRATE_LIVE
+libvirt_inject_partition = -1' >> /etc/nova/nova.conf
 }
 
 source "$(dirname "$0")/functions.sh"
