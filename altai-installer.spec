@@ -16,6 +16,7 @@ Requires:         altai-chef-gems
 Requires:         libselinux-utils
 Requires:         net-tools
 Requires:         python-netaddr
+Requires:         python-argparse
 
 
 %description
