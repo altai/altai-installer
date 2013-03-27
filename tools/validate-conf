@@ -1,0 +1,145 @@
+#!/usr/bin/python
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import netaddr
+
+
+bad_conf = False
+dev_null = open("/dev/null", "w")
+
+
+def show_error(msg):
+    global bad_conf
+    bad_conf = True
+    print >> sys.stderr, "error:", msg
+
+
+def show_error_and_exit(msg):
+    show_error(msg)
+    sys.exit(1)
+
+
+def exit_if_bad_conf():
+    if bad_conf:
+        sys.exit(1)
+
+
+def check_projects_interface():
+    iface = conf_json["projects-interface"]
+    if (subprocess.call(["ip", "addr", "show", iface],
+                        stdout=dev_null, stderr=sys.stdout) != 0):
+        show_error("Please check projects-interface parameter")
+
+
+def check_ip_exists(param):
+    ip_value = conf_json[param]
+    if (subprocess.call("ip addr show | grep -q 'inet %s\\>'" % ip_value,
+                        shell=True) != 0):
+        show_error("This IP does not exist in the system: %s = %s" %
+                   (param, ip_value))
+
+
+def check_ips():
+    if "master" in roles:
+        check_ip_exists("master-ip-private")
+        check_ip_exists("master-ip-public")
+    if "compute" in roles:
+        check_ip_exists("compute-ip-private")
+
+
+def check_management_network():
+    try:
+        mgmt_network = netaddr.IPNetwork(conf_json["management-network"])
+        for r in roles:
+            if (not netaddr.IPAddress(
+                    conf_json["%s-ip-private" % r]) in mgmt_network):
+                show_error(
+                    "%s-ip-private must belong to management-network" %
+                    r)
+    except netaddr.AddrFormatError as ex:
+        show_error(str(ex))
+
+
+ALTAI_INSTALLER_DIR = "/opt/altai"
+conf_fname = "%s/altai-node.json" % ALTAI_INSTALLER_DIR
+
+required_params = {
+    "master": [
+        "mysql-root-password",
+        "mysql-nova-password",
+        "admin-login-name",
+        "admin-login-email",
+        "admin-login-password",
+        "projects-interface",
+        "management-network",
+        "master-ip-private",
+        "master-ip-public",
+        "master-configured-url",
+        "dns-zone",
+        "mail-server",
+        "mail-sender-name",
+        "mail-sender-email",
+        "mail-smtp-username",
+        "mail-smtp-password",
+    ],
+    "compute": [
+        "mysql-nova-password",
+        "admin-login-name",
+        "admin-login-password",
+        "master-ip-private",
+        "master-ip-public",
+        "projects-interface",
+        "management-network",
+        "dns-zone",
+        "compute-ip-private",
+    ],
+}
+
+
+parser = argparse.ArgumentParser(
+    description="Validate Altai node configuration file.")
+parser.add_argument(
+    "config", nargs="?",
+    default=conf_fname,
+    help="node configuration file (default: %s)" % conf_fname)
+args = parser.parse_args()
+
+
+try:
+    with open(args.config, "r") as f:
+        conf_json = json.load(f)
+except Exception as ex:
+    show_error_and_exit(str(ex))
+
+
+run_list = conf_json["run_list"]
+roles = []
+for r in "master", "compute":
+    if ("role[%s-node]" % r) in run_list:
+        roles.append(r)
+
+if not roles:
+    show_error_and_exit(
+        "Node must have at least one role (`master' or `compute')")
+
+
+for r in roles:
+    for param in required_params[r]:
+        val = conf_json.get(param)
+        if val is None or val == "":
+            show_error(
+                "Parameter %s must be not empty (required by %s role)" %
+                (param, r))
+
+exit_if_bad_conf()
+
+check_projects_interface()
+check_ips()
+exit_if_bad_conf()
+
+check_management_network()
+exit_if_bad_conf()

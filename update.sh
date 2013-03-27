@@ -108,6 +108,7 @@ function incremental_update() {
 determine_versions
 
 if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+    tools/validate-conf
     build_version_list
     incremental_update
     echo "Altai is updated"

@@ -15,6 +15,7 @@ BuildArch:        noarch
 Requires:         altai-chef-gems
 Requires:         libselinux-utils
 Requires:         net-tools
+Requires:         python-netaddr
 
 
 %description

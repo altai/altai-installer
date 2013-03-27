@@ -92,53 +92,6 @@ function check_ports() {
 }
 
 
-function get_param() {
-    python -c 'import json; import os;
-print json.load(open("altai-node.json"))["'$1'"]' ||
-       die "cannot read parameter $1"
-}
-
-
-function check_interface() {
-    iface=$(get_param "projects-interface")
-    err=$(ifconfig $iface 2>&1 >/dev/null) || {
-        error_start
-        echo "$err"
-        echo "Please check projects-interface parameter in altai-node.json"
-        error_end
-        if [ $force_install == n ]; then
-            exit 1
-        fi
-    }
-}
-
-
-function check_ip_exists() {
-    local ip_param=$(get_param "$1")
-    /sbin/ip addr show | grep -q "inet $ip_param\>" || {
-        error_start
-        echo "This IP does not exist in the system: $1 = $ip_param"
-        error_end
-        exit 1
-    }
-}
-
-
-function check_ips() {
-    local run_list="$(get_param run_list)"
-    if [[ "$run_list" =~ .*master-node.* ]]; then
-        check_ip_exists "master-ip-private"
-        check_ip_exists "master-ip-public"
-    fi
-    if [[ "$run_list" =~ .*compute-node.* ]]; then
-        check_ip_exists "compute-ip-private"
-    fi
-}
-
-function check_management_network() {
-    get_param "management-network"
-}
-
 function check_receipt() {
     local receipt="${install_mode}-node.json"
     if [ ! -r "$receipt" ]; then
@@ -187,10 +140,7 @@ fi
 
 # install packages
 check_receipt
-check_ports
-check_interface
-check_ips
-check_management_network
+tools/validate-conf
 altailog="/var/log/altai-install.log"
 touch "$altailog"
 chmod 600 "$altailog"
