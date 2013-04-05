@@ -1,7 +1,7 @@
 %define targetdir /opt/altai
 
 Name:             altai-installer
-Version:          1.1.1
+Version:          1.1.2
 Release:          0%{?dist}
 Summary:          Installer for Altai
 License:          GNU LGPL 2.1
