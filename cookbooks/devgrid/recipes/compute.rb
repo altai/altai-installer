@@ -55,27 +55,10 @@ end
 
 
 node["services"].push({"name"=>"nova_compute", "type"=>"amqp"})
-%w( messagebus libvirtd ).each do |service|
+%w( messagebus libvirtd nova-compute ).each do |service|
     service service do
 	action [:enable, :restart]
     end
 end
-
-#
-# Iptables should start when nova-compute stop.
-#
-
-%w( nova-compute iptables ).each do |service|
-    service service do
-        action [:stop]
-    end
-end
-
-%w( iptables nova-compute ).each do |service|
-    service service do
-        action [:enable, :start]
-    end
-end
-
 
 log("nova-compute was succesfully installed")
