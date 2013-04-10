@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -e
+
+log () {
+    printf "%s\t***\t%s\n" "$(date +[%FT%T%:z])" "$1"
+}
+
+
+local_path="$(dirname $0)"
+tools_dir="$(readlink -f "$local_path/../../tools")"
+nova_get_flag="$tools_dir/nova-get-flag"
+update_libvirt_xml="$local_path/update-libvirt-xml"
+
+
+log "Downgrading QEMU packages"
+yum shell -y --disablerepo='*' --enablerepo='base,updates,altai-*' \
+    "$local_path/qemu-downgrade.yum-shell"
+
+
+# after changing qemu binary, libvirtd should re-read its capabilities:
+service libvirtd restart
+
+instances_path="$("$nova_get_flag" nova.compute.manager instances_path)"
+
+log "Updating instances configuration"
+for instance_dir in "$instances_path"/instance-*; do
+    # Don't fall on garbage or when there are no instances
+    [ -d "$instance_dir" ] || continue
+
+    "$update_libvirt_xml" "$instance_dir/libvirt.xml" || true
+    done
+
+# Update all VMs, not just ours
+virsh list --all --name | while read instance; do
+    # virsh list may print empty lines
+    [ -n "$instance" ] || continue
+
+    EDITOR="$update_libvirt_xml" \
+        virsh edit "$instance"
+done
+
