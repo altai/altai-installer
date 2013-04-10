@@ -1,0 +1,57 @@
+#!/bin/bash -x
+
+# Downgrade QEMU if needed.
+# Returns
+# 0 - ok
+# 1 - no downgrade needed
+# everything else - downgrade failed
+
+log () {
+    printf "%s\t***\t%s\n" "$(date +[%FT%T%:z])" "$1"
+}
+
+
+local_path="$(dirname $0)"
+tools_dir="$(readlink -f "$local_path/../../tools")"
+nova_get_flag="$(readlink -f "$tools_dir/nova-get-flag")"
+update_libvirt_xml="$local_path/update-libvirt-xml"
+
+log "Check if QEMU downgrade is needed"
+[[ "$($tools_dir/node-roles)" =~ .*compute.* ]] || exit 1
+[[ `rpm --query --queryformat '%{VERSION}-%{RELEASE}\n' qemu-kvm` \
+        =~ ^0\.15\.0-[^-]+\.gd ]]  || exit 1
+
+
+log "Validating environment"
+[ -x "$nova_get_flag" ] || exit 2
+[ -x "$update_libvirt_xml" ] || exit 2
+
+
+log "Downgrading QEMU packages"
+yum shell --disablerepo='*' --enablerepo='base,updates,altai-*' \
+    "$local_path/qemu-downgrade.yum-shell" || exit 2
+
+
+# after changing qemu binary, libvirtd should re-read its capabilities:
+service libvirtd restart
+
+instances_path="$("$nova_get_flag" nova.compute.manager instances_path)"
+
+log "Updating instances configuration"
+for instance_dir in "$instances_path"/instance-*; do
+    # Don't fall on garbage or when there are no instances
+    [ -d "$instance_dir" ] || continue
+
+    "$update_libvirt_xml" "$instance_dir/libvirt.xml" || true
+done
+
+# Update all VMs, not just our
+$(virsh list --all --name) | while read instance; do
+    # virsh list may print empty lines
+    [ -n "$instance" ] || continue
+
+    EDITOR="$update_libvirt_xml" \
+        virsh edit "$instance" \
+        || exit 2
+done
+

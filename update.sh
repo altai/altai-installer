@@ -105,13 +105,31 @@ function incremental_update() {
 }
 
 
+function downgrade_qemu_if_needed() {
+    updates/qemu-downgrade/downgrade-qemu-if-needed
+    case "$?" in
+        0)
+            QEMU_DOWNGRADE_MESSAGE="
+QEMU was dowgnraded. Please restart all instances running on this host"
+            ;;
+        1)  ;; # nothing to do
+        *)
+            echo "FAILED to downgrade QEMU. See above log for details."
+            exit 1
+            ;;
+    esac
+}
+
+
 determine_versions
 
 if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
     tools/validate-conf
     build_version_list
+    downgrade_qemu_if_needed
+
     incremental_update
-    echo "Altai is updated"
+    echo "Altai is updated. $QEMU_DOWNGRADE_MESSAGE"
 else
     echo "Altai has been already updated"
 fi
