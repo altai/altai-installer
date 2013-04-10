@@ -105,13 +105,29 @@ function incremental_update() {
 }
 
 
+function check_for_qemu_downgrade() {
+    if [ rpm --query --queryformat '%{VERSION}-%{RELEASE}\n' qemu-kvm \
+            | grep '^0\.15\.0-.*\.gd' ]
+    then
+        if ! updates/qemu-dowgrade/qemu-downgrade.sh ; then
+            echo "QEMU downgrade failed. Altai was NOT updated."
+            exit 1
+        fi
+        QEMU_DOWNGRADE_MESSAGE='
+QEMU was downgraded. Please reboot all instances running on this node'
+    else
+        QEMU_DOWNGRADE_MESSAGE=''
+    fi
+}
+
+
 determine_versions
 
 if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
     tools/validate-conf
     build_version_list
     incremental_update
-    echo "Altai is updated"
+    echo "Altai is updated.$QEMU_DOWNGRADE_MESSAGE"
 else
     echo "Altai has been already updated"
 fi
