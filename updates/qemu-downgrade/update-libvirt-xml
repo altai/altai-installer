@@ -1,0 +1,76 @@
+#!/usr/bin/python
+
+"""Update XML files that describe QEMU instances
+
+This simple script uses XSLT to make some changes to libvirt XMLs:
+
+- reset machine type to "pc" so we can downgrade qemu;
+- force 'qemu' driver for virtio-net to avoid problems with
+  in-kernel implementation.
+
+Usage: update-libvirt-xml file [file...]
+"""
+
+from lxml import etree
+
+
+_TRANSFORM = """
+<xsl:stylesheet version="1.0"
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+ <xsl:output omit-xml-declaration="yes" indent="yes"/>
+ <xsl:strip-space elements="*"/>
+
+ <!-- basically, we copy everything -->
+ <xsl:template match="node()|@*" name="identity">
+  <xsl:copy>
+   <xsl:apply-templates select="node()|@*"/>
+  </xsl:copy>
+ </xsl:template>
+
+ <!-- for interfaces of type 'bridge' with model 'virtio'
+      we enforce 'qemu' driver if driver is not specified already -->
+ <xsl:template
+  match="/domain/devices/interface[
+          @type='bridge' and not(driver)]/model[@type='virtio']">
+  <xsl:call-template name="identity"/>
+  <driver name="qemu"/>
+ </xsl:template>
+
+ <!-- set machine to 'pc' for compatibility -->
+ <xsl:template match="/domain/os/type/@machine">
+  <xsl:attribute name="type">pc</xsl:attribute>
+ </xsl:template>
+</xsl:stylesheet>
+"""
+
+
+def _apply(transform, in_filename, out_filename):
+    """Apply the transformation to XML file
+
+    Read XML from in_filename, parse it, apply transformation
+    and write result to out_filename. Input and output files
+    may coincide.
+    """
+    with open(in_filename) as f:
+        doc = etree.parse(f)
+        data = unicode(transform(doc))
+    with open(out_filename, 'wb') as f:
+        f.write(data.encode('utf-8'))
+
+
+def _transform_all(filenames, transform_str):
+    """In-place transform several files
+
+    Parse XSL transformation from string or file-like object
+    transform_str and apply it to all files which names are
+    given in filenames iterable in-place.
+    """
+    transform = etree.XSLT(etree.XML(transform_str))
+    for filename in filenames:
+        _apply(transform, filename, filename)
+
+
+if __name__ == '__main__':
+    import sys
+    _transform_all(sys.argv[1:], _TRANSFORM)
+

@@ -1,0 +1,5 @@
+erase qemu-system-x86 qemu-common qemu
+downgrade qemu-img-0.12.1.2 qemu-kvm-0.12.1.2 qemu-kvm-tools-0.12.1.2 vgabios
+install seabios libvirt
+transaction solve
+run
