@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+"""Get a flag from nova module
+
+We need to get current nova parameters, even if they are not mentioned
+in nova.conf. To achieve this we need to import module where this parameter
+is declared. This is a simple script that does it.
+
+"""
+
+import sys
+from nova import utils
+
+
+def die(msg, *args):
+    sys.stderr.write(msg % args + '\n')
+    sys.exit(1)
+
+
+def main(argv):
+    if len(argv) != 3:
+        die("Usage: %s <module> <parameter>", argv[0])
+
+    try:
+        mod = utils.import_object(argv[1])
+    except ImportError:
+        die("Failed to import %r", argv[1])
+
+    try:
+        FLAGS = mod.FLAGS
+    except AttributeError:
+        die("No FLAGS in %r", argv[1])
+
+    utils.default_flagfile()
+    argv = FLAGS(argv)
+
+    try:
+        print getattr(FLAGS, argv[2])
+    except Exception, ex:
+        die("Failed to get attribute %s from %s: %s",
+            argv[2], argv[1], ex)
+
+if __name__ == '__main__':
+    main(sys.argv)
+

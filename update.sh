@@ -105,13 +105,37 @@ function incremental_update() {
 }
 
 
+function package_evr() {
+    local evr;
+    # NOTE(imelnikov): combining declaration with assignment resets $?
+    evr="$(rpm --query --queryformat '%{EPOCH}:%{VERSION}-%{RELEASE}' "$1")"
+    [ $? -ne 0 ] || echo "$evr"
+}
+
+
+function downgrade_qemu_if_needed() {
+    OLD_QEMU_EVR="$(package_evr qemu-kvm)"
+    [[ "$OLD_QEMU_EVR"  =~ ^2:0\.15\.0-[^-]+\.gd ]] || return 0
+    if ! updates/qemu-downgrade/qemu-downgrade then
+        echo "QEMU downgrade FAILED"
+        exit 1
+    fi
+}
+
+
 determine_versions
 
 if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
     tools/validate-conf
     build_version_list
+    downgrade_qemu_if_needed
     incremental_update
-    echo "Altai is updated"
+    echo "Altai is updated."
+    if [ "$OLD_QEMU_EVR" != "$(package_evr qemu-kvm)" ]; then
+        echo "QEMU version changed. It is recommended to shutdown and"
+        echo "then start again all then instances running on this host."
+    fi
 else
     echo "Altai has been already updated"
 fi
+
