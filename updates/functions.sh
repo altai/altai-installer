@@ -91,7 +91,7 @@ function do_update() {
     if [ -n "$PACKAGES_EXCLUDE" ]; then
         PACKAGES_EXCLUDE="--exclude=$(echo $PACKAGES_EXCLUDE | sed 's/ /,/g')"
     fi
-    yum -y --disablerepo='*' --enablerepo='base,altai-*' --skip-broken $PACKAGES_EXCLUDE upgrade
+    yum -y --disablerepo='*' --enablerepo='base,updates,altai-*' --skip-broken $PACKAGES_EXCLUDE upgrade
     if [ -n "$PACKAGES_INSTALL" ]; then
         echo "Installing packages:" $PACKAGES_INSTALL
         yum install -y $PACKAGES_INSTALL

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Downgrade QEMU if needed.
+# Returns
+# 0 - ok
+# 1 - no downgrade needed
+# everything else - downgrade failed
+
+# Check if updates are nedded
+[[ "$NODE_ROLES" =~ .*compute.* ]] || exit 1
+
+[[ `rpm --query --queryformat '%{VERSION}-%{RELEASE}\n' qemu-kvm`
+        =~ ^0\.15\.0-[^-]+\.gd ]]  || exit 1
+
+
+local_path=$(dirname $0)
+nova_get_flag="$(readlink -f "$local_path/../../tools/nova-get-flag")"
+update_libvirt_xml="$local_path/update-libvirt-xml"
+
+[ -x "$nova_get_flag" ] || exit 2
+[ -x "$update_libvirt_xml" ] || exit 2
+
+
+log () { 
+    printf "%s\t***\t%s\n" "$(date +[%FT%T%:z])" "$1" 
+}
+
+
+log "Downgrading QEMU packages"
+yum shell -y --disablerepo='*' --enablerepo='base,updates,altai-*' \
+    "$local_path/qemu-downgrade.yum-shell" || exit 2
+
+
+# after changing qemu binary, libvirtd should re-read its capabilities:
+service libvirtd restart
+
+instances_path="$("$nova_get_flag" nova.compute.manager instances_path)"
+
+log "Updating instances configuration"
+for instance_dir in "$instances_path"/instance-*; do
+    "$update_libvirt_xml" "$instance_dir/libvirt.xml" || true
+    EDITOR="$update_libvirt_xml" \
+        virsh edit "$(basename $instance_dir)" \
+        || exit 2
+done
+
