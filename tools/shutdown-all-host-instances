@@ -1,0 +1,78 @@
+#!/bin/bash -e
+
+USAGE="Usage: $0 [OPTIONS]
+Forcible shutdown all the instances running on this host
+
+Known options include:
+    -t|--timeout TIMEOUT    wait TIMEOUT seconds for instances to shut down
+    -p|--poll POLL_PERIOD   check if shutdown is complete every POLL_PERIOD seconds
+    -h|--help               show this message and exit
+"
+
+# timeout in seconds
+TIMEOUT=180
+POLL_PERIOD=5
+
+function die() {
+    echo "${1:-$USAGE}" >&2
+    exit 1
+}
+
+function exit_if_no_instances_left() {
+    if [ "$(virsh list --name | grep -v '^\s*$' | wc -l)" -eq 0 ]; then
+        echo " DONE"
+        exit 0
+    fi
+}
+
+function for_each_running_instance() {
+    echo "$1:"
+    shift
+    for instance in `virsh list --name` ; do
+        "$@" "$instance"
+    done
+}
+
+# parse args
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -t|--timeout)
+            [ -n "$2" ] || die
+            TIMEOUT=$2
+            shift 2
+            ;;
+        -p|--poll)
+            [ -n "$2" ] || die
+            POLL_PERIOD=$2
+            shift 2
+            ;;
+        -h|--help)
+            echo "$USAGE"
+            exit 0
+            ;;
+        *)
+            echo "$USAGE"
+            exit 1
+            ;;
+    esac
+done
+
+# stop nova-compute, so it does not see what we do here
+service nova-compute stop
+
+for_each_running_instance "Shutting down instances" virsh shutdown
+
+echo -n "Waiting for instances to shut down..."
+for step in $(seq 1 $(($TIMEOUT / $POLL_PERIOD))); do
+    sleep "$POLL_PERIOD"
+    exit_if_no_instances_left
+    echo -n '.'
+done
+echo
+
+for_each_running_instance "Killing all instances left" virsh destroy
+sleep $POLL_PERIOD
+exit_if_no_instances_left
+
+die "FAILED to destroy some instances"
+
