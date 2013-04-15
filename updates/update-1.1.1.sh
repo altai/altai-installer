@@ -25,6 +25,9 @@ nova-db-clean
 "
 PACKAGES_EXCLUDE_COMPUTE="
 usbredir
+qemu-kvm
+qemu-img
+vgabios
 "
 
 function postin_common() {

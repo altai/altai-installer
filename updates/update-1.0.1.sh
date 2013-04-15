@@ -23,6 +23,9 @@ nova-scheduler
 "
 PACKAGES_EXCLUDE_COMPUTE="
 usbredir
+qemu-kvm
+qemu-img
+vgabios
 "
 
 function postin_compute() {

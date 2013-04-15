@@ -28,6 +28,9 @@ odb
 "
 PACKAGES_EXCLUDE_COMPUTE="
 usbredir
+qemu-kvm
+qemu-img
+vgabios
 "
 
 function prein_master() {
