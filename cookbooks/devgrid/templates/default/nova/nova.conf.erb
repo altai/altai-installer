@@ -80,6 +80,7 @@ dns_default_ttl = 7200
 dns_soa_primary = ns1.<%= node["dns-zone"] %>
 dns_soa_email = hostmaster.<%= node["dns-zone"] %>
 dns_zone = <%= node["dns-zone"] %>
+dns_zone_address = <%= node["master-ip-public"] %>
 dns_ns = ns1:<%= node["master-ip-public"] %>
 dns_ptr = true
 <% end -%>
