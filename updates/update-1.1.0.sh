@@ -36,6 +36,9 @@ vgabios
 function prein_master() {
     # newer python-jinja2 provides python-jinja2-26
     yum -y reinstall python-jinja2 || true
+    if ! grep -q allow_resize_to_same_host /etc/nova/nova.conf; then
+        echo 'allow_resize_to_same_host = true' >> /etc/nova/nova.conf
+    fi
 }
 
 function postin_common() {
@@ -53,11 +56,6 @@ function postin_master() {
     fi
 }
 
-function postin_compute() {
-    if ! grep -q allow_resize_to_same_host /etc/nova/nova.conf; then
-        echo 'allow_resize_to_same_host = true' >> /etc/nova/nova.conf
-    fi
-}
 
 source "$(dirname "$0")/functions.sh"
 standard_update "$@"
