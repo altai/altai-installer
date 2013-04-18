@@ -7,6 +7,9 @@ state_path = /var/lib/nova
 auth_strategy = keystone
 node_availability_zone = nova
 
+# disable fixed range corresponding iptables rules
+fixed_range =
+
 sql_connection = mysql://nova:<%= node["mysql-nova-password"] %>@<%= node["master-ip-private"] %>/nova
 # Makes nova to "infinitly" connect to mysql, to avoid race condition between master and compute nodes start
 sql_max_retries = -1
