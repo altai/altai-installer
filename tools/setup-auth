@@ -44,13 +44,24 @@ def update_py():
             "sed",
             "-i",
             "-e",
-            "/LDAP_INTEGRATION/d",
+            "/^LDAP_/d",
             "/etc/focus/local_settings.py",
     ])
 
     with open("/etc/focus/local_settings.py", "a") as f:
-        f.write("LDAP_INTEGRATION = %s\n" %
-                ("True" if ldap_integration else "False"))
+        if ldap_integration:
+            f.write("""
+LDAP_INTEGRATION = True
+LDAP_URL = %(ldap-url)r
+LDAP_USER = %(ldap-user)r
+LDAP_PASSWORD = %(ldap-password)r
+LDAP_GROUP_TREE_DN = %(ldap-group-tree-dn)r
+LDAP_GROUP_TREE_OBJECTCLASS = %(ldap-group-objectclass)r
+LDAP_GROUP_NAME_ATTRIBUTE = %(ldap-group-name-attribute)r
+""" % conf_json)
+        else:
+            f.write("LDAP_INTEGRATION = False\n")
+
     print "done"
 
 
