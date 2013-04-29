@@ -44,6 +44,13 @@ function error_end() {
     echo
 }
 
+function confirm() {
+    local prompt="${1:-Please}"
+    read -p "$prompt type 'y' to proceed, otherwise type 'n' to terminate the installation process: " -r -n 1
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]]
+}
+
 
 function check_ports() {
     NETSTAT=$(netstat -anp | awk '/^(tcp.*LISTEN|udp)/ { print $1 "\t" $4 "\t" $(NF) }')
@@ -83,11 +90,7 @@ function check_ports() {
         if [ $force_install == y ]; then
             return
         fi
-        read -p "Please click y to proceed, otherwise click n to terminate the installation process: " -r -n 1
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
+        confirm || exit 1
     fi
 }
 
@@ -126,11 +129,7 @@ done
 
 if [ $accept_eula == n ]; then
     cat ./EULA.txt
-    read -p "If you agree with the terms, please click y to proceed, otherwise click n to terminate the installation process: " -r -n 1
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
+    confirm "If you agree with the terms," || exit 1
 fi
 
 # set Permissive mode if SELinux is enabled
