@@ -1,3 +1,4 @@
-Please review our end user agreement before proceeding at
-http://www.griddynamics.com/solutions/altai-private-cloud-for-developers/release/eula 
+Altai licensing terms and conditions are summarized here:
+https://altaicloud.atlassian.net/wiki/display/DOC/Altai+Cloud+for+Developers+License
 
+Please review them before proceeding.
